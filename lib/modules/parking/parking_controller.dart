@@ -69,7 +69,7 @@ class ParkingController extends GetxController with GetSingleTickerProviderState
           entryTime: DateTime.now()),
     );
 
-    return ResponseModel(data: 'Reservada efetuada com sucesso!');
+    return ResponseModel(data: 'Reserva efetuada com sucesso!');
   }
 
   /// Finalizes a reservation
@@ -78,7 +78,7 @@ class ParkingController extends GetxController with GetSingleTickerProviderState
 
     listParkingSpace[index] = ParkingSpaceModel(position: index);
 
-    return ResponseModel(data: 'Reservada finalizada com sucesso!');
+    return ResponseModel(data: 'Reserva finalizada com sucesso!');
   }
 
   /// Makes a filter in historic of parking space
