@@ -18,48 +18,44 @@ class AppTheme {
   static const Color redColor = Color(0xffF44336);
   static const Color orangeColor = Color(0xffFF9800);
   static const Color blueColor = Color(0xff2196F3);
-
   static ThemeData get defaultTheme => ThemeData(
         primaryColor: primaryColor,
-        textSelectionTheme: const TextSelectionThemeData(cursorColor: accentColor),
         appBarTheme: const AppBarTheme(
           surfaceTintColor: Colors.white,
-          foregroundColor: Colors.white,
+          foregroundColor: accentColor,
           shadowColor: Colors.black54,
-          color: primaryColor,
-          elevation: 2,
+          color: Colors.white,
+          elevation: 3,
           centerTitle: true,
-          titleSpacing: 0,
-          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: accentColor),
         ),
-        buttonTheme: ButtonThemeData(
-          height: 45,
-          disabledColor: disableColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        tabBarTheme: const TabBarTheme(
+          labelStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),
+          unselectedLabelStyle: TextStyle(color: Colors.black45, fontWeight: FontWeight.bold, fontSize: 14),
+          indicatorColor: primaryColor,
+          labelColor: Colors.black,
+          unselectedLabelColor: Colors.black54,
+          tabAlignment: TabAlignment.center,
+          splashFactory: NoSplash.splashFactory,
+          overlayColor: MaterialStatePropertyAll(Colors.transparent),
+          dividerColor: Colors.white,
         ),
-        scaffoldBackgroundColor: Colors.grey.shade200,
-        disabledColor: disableColor,
-        hintColor: disableColor,
+        scaffoldBackgroundColor: backgroundColor,
         visualDensity: VisualDensity.adaptivePlatformDensity,
-        colorScheme: ColorScheme.light(
+        colorScheme: const ColorScheme.light(
           secondary: accentColor,
           primary: primaryColor,
-          error: errorColor,
-          background: Colors.grey.shade200,
+          background: backgroundColor,
           surfaceTint: backgroundColor,
         ),
-        dialogTheme: DialogTheme(
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
+        dividerTheme: const DividerThemeData(color: Color(0xFFEEEEEE), thickness: 1),
         inputDecorationTheme: InputDecorationTheme(
           errorStyle: const TextStyle(fontSize: 12),
-          hintStyle: TextStyle(color: Colors.grey.shade400),
+          hintStyle: const TextStyle(color: Colors.black12, fontSize: 13),
           errorMaxLines: 2,
           isDense: true,
           filled: true,
-          fillColor: Colors.white38,
+          fillColor: Colors.white,
           contentPadding: const EdgeInsets.all(10),
           prefixIconColor: MaterialStateColor.resolveWith((states) {
             if (states.contains(MaterialState.error)) return redColor;
@@ -67,29 +63,44 @@ class AppTheme {
           }),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: accentColor),
+            borderSide: const BorderSide(color: accentColor, width: 1.8),
           ),
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: AppTheme.disableColor, width: 1.5),
+            borderSide: const BorderSide(color: accentColor, width: 1.8),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: accentColor, width: 1.8),
+            borderSide: const BorderSide(color: accentColor, width: 2),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: AppTheme.errorColor, width: 1.5),
+            borderSide: const BorderSide(color: AppTheme.errorColor, width: 1.8),
           ),
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: AppTheme.errorColor, width: 2),
+            borderSide: const BorderSide(color: AppTheme.errorColor, width: 2.3),
           ),
         ),
-        iconButtonTheme: IconButtonThemeData(
-          style: ButtonStyle(iconColor: MaterialStateColor.resolveWith((states) => Colors.white70)),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
+            elevation: 2,
+          ),
         ),
-        popupMenuTheme: const PopupMenuThemeData(surfaceTintColor: Colors.white),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.black54,
+            backgroundColor: Colors.white70,
+            elevation: 2,
+          ),
+        ),
+        dialogTheme: const DialogTheme(
+          backgroundColor: Colors.white,
+          elevation: 3,
+          surfaceTintColor: Colors.white,
+        ),
         useMaterial3: true,
       );
 }

@@ -3,35 +3,31 @@ import 'dart:convert';
 class VacancyModel {
   final String? id;
   final String description;
-  final String plate;
+  final String licensePlate;
   final DateTime entryTime;
-  final String? departureTime;
-  final int vacancyNumber;
+  final DateTime? departureTime;
 
   VacancyModel({
     this.id,
     required this.description,
-    required this.plate,
+    required this.licensePlate,
     required this.entryTime,
     this.departureTime,
-    required this.vacancyNumber,
   });
 
   VacancyModel copyWith({
     String? id,
     String? description,
-    String? plate,
+    String? licensePlate,
     DateTime? entryTime,
-    String? departureTime,
-    int? vacancyNumber,
+    DateTime? departureTime,
   }) {
     return VacancyModel(
       id: id ?? this.id,
       description: description ?? this.description,
-      plate: plate ?? this.plate,
+      licensePlate: licensePlate ?? this.licensePlate,
       entryTime: entryTime ?? this.entryTime,
       departureTime: departureTime ?? this.departureTime,
-      vacancyNumber: vacancyNumber ?? this.vacancyNumber,
     );
   }
 
@@ -42,12 +38,11 @@ class VacancyModel {
       result.addAll({'id': id});
     }
     result.addAll({'description': description});
-    result.addAll({'plate': plate});
+    result.addAll({'licensePlate': licensePlate});
     result.addAll({'entryTime': entryTime.millisecondsSinceEpoch});
     if (departureTime != null) {
-      result.addAll({'departureTime': departureTime});
+      result.addAll({'departureTime': departureTime!.millisecondsSinceEpoch});
     }
-    result.addAll({'vacancyNumber': vacancyNumber});
 
     return result;
   }
@@ -56,10 +51,9 @@ class VacancyModel {
     return VacancyModel(
       id: map['id'],
       description: map['description'] ?? '',
-      plate: map['plate'] ?? '',
+      licensePlate: map['licensePlate'] ?? '',
       entryTime: DateTime.fromMillisecondsSinceEpoch(map['entryTime']),
-      departureTime: map['departureTime'],
-      vacancyNumber: map['vacancyNumber']?.toInt() ?? 0,
+      departureTime: map['departureTime'] != null ? DateTime.fromMillisecondsSinceEpoch(map['departureTime']) : null,
     );
   }
 
@@ -69,7 +63,7 @@ class VacancyModel {
 
   @override
   String toString() {
-    return 'VacancyModel(id: $id, description: $description, plate: $plate, entryTime: $entryTime, departureTime: $departureTime, vacancyNumber: $vacancyNumber)';
+    return 'VacancyModel(id: $id, description: $description, licensePlate: $licensePlate, entryTime: $entryTime, departureTime: $departureTime)';
   }
 
   @override
@@ -79,19 +73,13 @@ class VacancyModel {
     return other is VacancyModel &&
         other.id == id &&
         other.description == description &&
-        other.plate == plate &&
+        other.licensePlate == licensePlate &&
         other.entryTime == entryTime &&
-        other.departureTime == departureTime &&
-        other.vacancyNumber == vacancyNumber;
+        other.departureTime == departureTime;
   }
 
   @override
   int get hashCode {
-    return id.hashCode ^
-        description.hashCode ^
-        plate.hashCode ^
-        entryTime.hashCode ^
-        departureTime.hashCode ^
-        vacancyNumber.hashCode;
+    return id.hashCode ^ description.hashCode ^ licensePlate.hashCode ^ entryTime.hashCode ^ departureTime.hashCode;
   }
 }

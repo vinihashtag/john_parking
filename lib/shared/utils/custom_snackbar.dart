@@ -6,7 +6,7 @@ class CustomSnackbar {
 
   static void showMessageSuccess({String? title, required String message, Duration? duration, Function()? onTap}) {
     _showSnackBar(
-      title: title ?? 'Success',
+      title: title ?? 'Sucesso',
       message: message,
       color: Colors.green,
       icon: Icons.check_circle_outline,
@@ -17,7 +17,7 @@ class CustomSnackbar {
 
   static void showMessageError({String? title, required String message, Duration? duration, Function()? onTap}) {
     _showSnackBar(
-      title: title ?? 'Error',
+      title: title ?? 'Erro',
       message: message,
       color: Colors.red,
       icon: Icons.error_outline_outlined,
@@ -52,7 +52,7 @@ class CustomSnackbar {
       titleText: Padding(
         padding: const EdgeInsets.only(left: 16),
         child: Text(
-          title ?? 'Error',
+          title ?? 'Erro',
           style: const TextStyle(
             fontSize: 16,
             color: Colors.white,
