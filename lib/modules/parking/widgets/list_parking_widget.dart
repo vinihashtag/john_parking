@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:john_parking/shared/utils/constants.dart';
 import 'package:john_parking/shared/utils/custom_snackbar.dart';
 
 import '../../../data/models/parking_space_model.dart';
@@ -17,10 +18,13 @@ class ListParkingWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.statusParkingSpace.isLoading) return const Center(child: CircularProgressIndicator());
+      if (controller.statusParkingSpace.isLoading) {
+        return const Center(key: Key(ConstantsApp.kLoadingParkingSpace), child: CircularProgressIndicator());
+      }
 
       if (controller.statusParkingSpace.isFailure) {
         return ZoomIn(
+          key: const Key(ConstantsApp.kFailureParkingSpace),
           duration: const Duration(milliseconds: 350),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 60),
@@ -46,6 +50,7 @@ class ListParkingWidget extends StatelessWidget {
           SliverPersistentHeader(
             floating: true,
             pinned: true,
+            key: const Key(ConstantsApp.kTitleParkingSpace),
             delegate: CustomSliverPersistentHeaderDelegate(
               minHeight: 95,
               maxHeight: 95,
@@ -78,6 +83,7 @@ class ListParkingWidget extends StatelessWidget {
 
           // * Grid of parking space
           SliverPadding(
+            key: const Key(ConstantsApp.kListParkingSpace),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
             sliver: Obx(() {
               return SliverGrid.builder(
@@ -157,7 +163,7 @@ class ListParkingWidget extends StatelessWidget {
                                         autovalidateMode: AutovalidateMode.onUserInteraction,
                                         decoration: const InputDecoration(hintText: 'Informe a placa do veículo'),
                                         inputFormatters: [PlacaVeiculoInputFormatter()],
-                                        keyboardType: TextInputType.text,
+                                        keyboardType: TextInputType.visiblePassword,
                                         validator: (value) => controller.vehicleLicensePlate.text.trim().length == 7
                                             ? null
                                             : 'Informe uma placa de veículo válida',
@@ -193,6 +199,7 @@ class ListParkingWidget extends StatelessWidget {
                                             child: Visibility(
                                               visible: parkingSpace.vacancyModel == null,
                                               replacement: ElevatedButton.icon(
+                                                key: const Key(ConstantsApp.kLButtonFinalizeReservation),
                                                 onPressed: () async {
                                                   Get.back();
                                                   final response =
@@ -222,6 +229,7 @@ class ListParkingWidget extends StatelessWidget {
                                                         controller.descriptionVehicle.text.trim().length >= 3 &&
                                                             controller.vehicleLicensePlate.text.trim().length == 7;
                                                     return ElevatedButton.icon(
+                                                      key: const Key(ConstantsApp.kLButtonReservation),
                                                       onPressed: !isValid
                                                           ? null
                                                           : () async {

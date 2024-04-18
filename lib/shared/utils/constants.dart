@@ -18,4 +18,10 @@ class ConstantsApp {
   static const String columnParkingSpaceIdVacancy = 'parkingSpaceId';
 
   /// Keys
+  static const String kLoadingParkingSpace = 'kLoadingParkingSpace';
+  static const String kFailureParkingSpace = 'kFailureParkingSpace';
+  static const String kTitleParkingSpace = 'kTitleParkingSpace';
+  static const String kListParkingSpace = 'kListParkingSpace';
+  static const String kLButtonReservation = 'kLButtonReservation';
+  static const String kLButtonFinalizeReservation = 'kLButtonFinalizeReservation';
 }
