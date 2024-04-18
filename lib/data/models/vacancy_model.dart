@@ -1,11 +1,12 @@
-import 'dart:convert';
+import 'package:john_parking/shared/utils/constants.dart';
 
 class VacancyModel {
-  final String? id;
+  final int? id;
   final String description;
   final String licensePlate;
   final DateTime entryTime;
   final DateTime? departureTime;
+  final int parkingSpaceId;
 
   VacancyModel({
     this.id,
@@ -13,14 +14,16 @@ class VacancyModel {
     required this.licensePlate,
     required this.entryTime,
     this.departureTime,
+    required this.parkingSpaceId,
   });
 
   VacancyModel copyWith({
-    String? id,
+    int? id,
     String? description,
     String? licensePlate,
     DateTime? entryTime,
     DateTime? departureTime,
+    int? parkingSpaceId,
   }) {
     return VacancyModel(
       id: id ?? this.id,
@@ -28,58 +31,39 @@ class VacancyModel {
       licensePlate: licensePlate ?? this.licensePlate,
       entryTime: entryTime ?? this.entryTime,
       departureTime: departureTime ?? this.departureTime,
+      parkingSpaceId: parkingSpaceId ?? this.parkingSpaceId,
     );
   }
 
   Map<String, dynamic> toMap() {
     final result = <String, dynamic>{};
 
-    if (id != null) {
-      result.addAll({'id': id});
-    }
-    result.addAll({'description': description});
-    result.addAll({'licensePlate': licensePlate});
-    result.addAll({'entryTime': entryTime.millisecondsSinceEpoch});
+    result.addAll({ConstantsApp.columnDescriptionVacancy: description});
+    result.addAll({ConstantsApp.columnLicensePlateVacancy: licensePlate});
+    result.addAll({ConstantsApp.columnEntryTimeVacancy: entryTime.millisecondsSinceEpoch});
     if (departureTime != null) {
-      result.addAll({'departureTime': departureTime!.millisecondsSinceEpoch});
+      result.addAll({ConstantsApp.columnDepartureTimeVacancy: departureTime!.millisecondsSinceEpoch});
     }
+    result.addAll({ConstantsApp.columnParkingSpaceIdVacancy: parkingSpaceId});
 
     return result;
   }
 
   factory VacancyModel.fromMap(Map<String, dynamic> map) {
     return VacancyModel(
-      id: map['id'],
-      description: map['description'] ?? '',
-      licensePlate: map['licensePlate'] ?? '',
-      entryTime: DateTime.fromMillisecondsSinceEpoch(map['entryTime']),
-      departureTime: map['departureTime'] != null ? DateTime.fromMillisecondsSinceEpoch(map['departureTime']) : null,
+      id: map['id']?.toInt(),
+      description: map[ConstantsApp.columnDescriptionVacancy] ?? '',
+      licensePlate: map[ConstantsApp.columnLicensePlateVacancy] ?? '',
+      entryTime: DateTime.fromMillisecondsSinceEpoch(map[ConstantsApp.columnEntryTimeVacancy]),
+      departureTime: map[ConstantsApp.columnDepartureTimeVacancy] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map[ConstantsApp.columnDepartureTimeVacancy])
+          : null,
+      parkingSpaceId: map[ConstantsApp.columnParkingSpaceIdVacancy] ?? 1,
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory VacancyModel.fromJson(String source) => VacancyModel.fromMap(json.decode(source));
 
   @override
   String toString() {
     return 'VacancyModel(id: $id, description: $description, licensePlate: $licensePlate, entryTime: $entryTime, departureTime: $departureTime)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is VacancyModel &&
-        other.id == id &&
-        other.description == description &&
-        other.licensePlate == licensePlate &&
-        other.entryTime == entryTime &&
-        other.departureTime == departureTime;
-  }
-
-  @override
-  int get hashCode {
-    return id.hashCode ^ description.hashCode ^ licensePlate.hashCode ^ entryTime.hashCode ^ departureTime.hashCode;
   }
 }

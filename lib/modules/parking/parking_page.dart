@@ -21,6 +21,11 @@ class ParkingPage extends GetView<ParkingController> {
             indicatorColor: AppTheme.primaryColor,
             indicatorWeight: 6,
             tabs: const [Tab(text: 'Vagas'), Tab(text: 'Histórico')],
+            onTap: (value) {
+              if (value == 1 && controller.datesValid) {
+                controller.filterHistoric();
+              }
+            },
           ),
         ),
       ),

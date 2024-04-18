@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:john_parking/data/models/response_model.dart';
 import 'package:john_parking/data/models/vacancy_model.dart';
+import 'package:john_parking/data/repositories/parking/parking_repository_interface.dart';
 import 'package:john_parking/shared/enums/status_type_enum.dart';
 import 'package:john_parking/shared/extensions/date_extension.dart';
 import 'package:john_parking/shared/extensions/string_extension.dart';
@@ -9,6 +10,10 @@ import 'package:john_parking/shared/extensions/string_extension.dart';
 import '../../data/models/parking_space_model.dart';
 
 class ParkingController extends GetxController with GetSingleTickerProviderStateMixin {
+  final IParkingRepository _parkingRepository;
+
+  ParkingController(this._parkingRepository);
+
   // * Controllers
   // * ----------------------------------------------------------------------------------------------------------------
   // * ----------------------------------------------------------------------------------------------------------------
@@ -16,22 +21,25 @@ class ParkingController extends GetxController with GetSingleTickerProviderState
   TabController? tabController;
   final TextEditingController descriptionVehicle = TextEditingController();
   final TextEditingController vehicleLicensePlate = TextEditingController();
-  final TextEditingController dateInitial = TextEditingController(text: DateTime.now().formatddMMyyyy);
-  final TextEditingController dateEnd = TextEditingController(text: DateTime.now().formatddMMyyyy);
+  final TextEditingController dateFilterInitial = TextEditingController(text: DateTime.now().formatddMMyyyy);
+  final TextEditingController dateFilterEnd = TextEditingController(text: DateTime.now().formatddMMyyyy);
 
   // * Observables
   // * ----------------------------------------------------------------------------------------------------------------
   // * ----------------------------------------------------------------------------------------------------------------
+  /// Controls status of page in tab parking space
+  final Rx<StatusTypeEnum> _statusParkingSpace = Rx<StatusTypeEnum>(StatusTypeEnum.idle);
+  StatusTypeEnum get statusParkingSpace => _statusParkingSpace.value;
 
   /// Controls status of page in tab historic
-  final Rx<StatusTypeEnum> _status = Rx<StatusTypeEnum>(StatusTypeEnum.idle);
-  StatusTypeEnum get status => _status.value;
+  final Rx<StatusTypeEnum> _statusHistoric = Rx<StatusTypeEnum>(StatusTypeEnum.idle);
+  StatusTypeEnum get statusHistoric => _statusHistoric.value;
 
-  /// Controls a list of vacancy
+  /// Controls a list of parking space
   final RxList<ParkingSpaceModel> listParkingSpace = RxList<ParkingSpaceModel>();
 
   /// Controls a list of vacancy
-  final RxList<ParkingSpaceModel> listVacancy = RxList<ParkingSpaceModel>();
+  final RxList<VacancyModel> listVacancy = RxList<VacancyModel>();
 
   // * Getters
   // * ----------------------------------------------------------------------------------------------------------------
@@ -41,9 +49,10 @@ class ParkingController extends GetxController with GetSingleTickerProviderState
   int get availableParkingSpace => listParkingSpace.where((item) => item.vacancyModel == null).length;
   int get unavailableParkingSpace => listParkingSpace.where((item) => item.vacancyModel != null).length;
   bool get datesValid =>
-      (dateInitial.text.trim().isNotEmpty && dateEnd.text.trim().isNotEmpty) &&
-          dateInitial.text.toDate.isBefore(dateEnd.text.toDate) ||
-      dateInitial.text.toDate.equals(dateEnd.text.toDate);
+      dateFilterInitial.text.trim().isNotEmpty &&
+      dateFilterEnd.text.trim().isNotEmpty &&
+      (dateFilterInitial.text.toDate.isBefore(dateFilterEnd.text.toDate) ||
+          dateFilterInitial.text.toDate.equals(dateFilterEnd.text.toDate));
 
   // * Actions
   // * ----------------------------------------------------------------------------------------------------------------
@@ -52,147 +61,93 @@ class ParkingController extends GetxController with GetSingleTickerProviderState
   @override
   void onInit() {
     tabController = TabController(length: 2, vsync: this);
-    List.generate(50, (index) => listParkingSpace.add(ParkingSpaceModel(position: index)));
+    getListParkingSpace();
     super.onInit();
   }
 
-  void getStatusParking() {}
+  /// Gets initial list of parking
+  Future<void> getListParkingSpace() async {
+    if (statusParkingSpace.isLoading) return;
+
+    _statusParkingSpace.value = StatusTypeEnum.loading;
+
+    listParkingSpace.clear();
+
+    final response = await _parkingRepository.getAllParkingSpace();
+
+    if (response.isSuccess) {
+      listParkingSpace.addAll(response.data!);
+      _statusParkingSpace.value = StatusTypeEnum.success;
+    } else {
+      _statusParkingSpace.value = StatusTypeEnum.failure;
+    }
+  }
 
   /// Creates a reservation
-  ResponseModel createParkingReservation(ParkingSpaceModel parking) {
-    final int index = listParkingSpace.indexWhere((element) => element.position == parking.position);
+  Future<ResponseModel> createParkingReservation(ParkingSpaceModel parking) async {
+    final int index = listParkingSpace.indexWhere((element) => element.id == parking.id);
 
-    listParkingSpace[index] = parking.copyWith(
+    final ParkingSpaceModel updateParkingSpace = parking.copyWith(
       vacancyModel: VacancyModel(
-          description: descriptionVehicle.text.trim(),
-          licensePlate: vehicleLicensePlate.text.trim(),
-          entryTime: DateTime.now()),
+        description: descriptionVehicle.text.trim(),
+        licensePlate: vehicleLicensePlate.text.trim(),
+        entryTime: DateTime.now(),
+        parkingSpaceId: parking.id,
+      ),
     );
 
-    return ResponseModel(data: 'Reserva efetuada com sucesso!');
+    final response = await _parkingRepository.saveParkingSpace(updateParkingSpace);
+
+    if (response.isSuccess) {
+      listParkingSpace[index] = response.data!;
+      return ResponseModel(data: 'Reserva efetuada com sucesso!');
+    } else {
+      return ResponseModel(error: 'Erro ao reservar, tente novamente.');
+    }
   }
 
   /// Finalizes a reservation
-  ResponseModel finalizeParkingReservation(ParkingSpaceModel parking) {
-    final int index = listParkingSpace.indexWhere((element) => element.position == parking.position);
+  Future<ResponseModel> finalizeParkingReservation(ParkingSpaceModel parking) async {
+    final int index = listParkingSpace.indexWhere((element) => element.id == parking.id);
 
-    listParkingSpace[index] = ParkingSpaceModel(position: index);
+    final response = await _parkingRepository.removeParkingSpace(parking);
 
-    return ResponseModel(data: 'Reserva finalizada com sucesso!');
+    if (response.isError) {
+      return ResponseModel(error: 'Erro ao finalizar a reserva, tente novamente.');
+    } else {
+      listParkingSpace[index] = ParkingSpaceModel(id: parking.id);
+      return ResponseModel(data: 'Reserva finalizada com sucesso!');
+    }
   }
 
   /// Makes a filter in historic of parking space
   Future<void> filterHistoric() async {
-    if (status.isLoading) return;
+    if (statusHistoric.isLoading) return;
 
-    _status.value = StatusTypeEnum.loading;
-
-    await 1.delay();
+    _statusHistoric.value = StatusTypeEnum.loading;
 
     listVacancy.clear();
 
-    listVacancy.addAll(_localListToTest.where((element) {
-      final initial = element.vacancyModel!.entryTime.equals(dateInitial.text.toDate) ||
-          element.vacancyModel!.entryTime.isAfter(dateInitial.text.toDate);
-      final end = (element.vacancyModel!.departureTime?.equals(dateEnd.text.toDate) ?? false) ||
-          (element.vacancyModel!.departureTime?.isBefore(dateEnd.text.toDate) ?? false) ||
-          element.vacancyModel!.departureTime == null;
-      return initial && end;
-    }));
+    final response = await _parkingRepository.getHistoricParkingByPeriod(
+      initDate: dateFilterInitial.text.toDate,
+      endDate: dateFilterEnd.text.toDate,
+    );
 
-    _status.value = StatusTypeEnum.success;
+    if (response.isSuccess) {
+      listVacancy.addAll(response.data!);
+      _statusHistoric.value = StatusTypeEnum.success;
+    } else {
+      _statusHistoric.value = StatusTypeEnum.failure;
+    }
   }
-
-  final _localListToTest = <ParkingSpaceModel>[
-    ParkingSpaceModel(
-      position: 0,
-      vacancyModel: VacancyModel(
-        description: 'description1',
-        licensePlate: 'plate1',
-        entryTime: DateTime(2024, 04, 16),
-        departureTime: DateTime(2024, 04, 16),
-      ),
-    ),
-    ParkingSpaceModel(
-      position: 0,
-      vacancyModel: VacancyModel(
-        description: 'description2',
-        licensePlate: 'plate2',
-        entryTime: DateTime(2024, 04, 15),
-        departureTime: DateTime(2024, 04, 16),
-      ),
-    ),
-    ParkingSpaceModel(
-      position: 0,
-      vacancyModel: VacancyModel(
-        description: 'description3',
-        licensePlate: 'plate3',
-        entryTime: DateTime(2024, 04, 14),
-        departureTime: DateTime(2024, 04, 14),
-      ),
-    ),
-    ParkingSpaceModel(
-      position: 0,
-      vacancyModel: VacancyModel(
-        description: 'description4',
-        licensePlate: 'plate4',
-        entryTime: DateTime(2024, 04, 10),
-        departureTime: DateTime(2024, 04, 16),
-      ),
-    ),
-    ParkingSpaceModel(
-      position: 0,
-      vacancyModel: VacancyModel(
-        description: 'description5',
-        licensePlate: 'plate5',
-        entryTime: DateTime(2024, 04, 9),
-        departureTime: DateTime(2024, 04, 9),
-      ),
-    ),
-    ParkingSpaceModel(
-      position: 0,
-      vacancyModel: VacancyModel(
-        description: 'description6',
-        licensePlate: 'plate6',
-        entryTime: DateTime(2024, 04, 9),
-        departureTime: DateTime(2024, 04, 9),
-      ),
-    ),
-    ParkingSpaceModel(
-      position: 0,
-      vacancyModel: VacancyModel(
-        description: 'description7',
-        licensePlate: 'plate7',
-        entryTime: DateTime(2024, 04, 16, 08, 30),
-        departureTime: DateTime(2024, 04, 16, 9, 45),
-      ),
-    ),
-    ParkingSpaceModel(
-      position: 0,
-      vacancyModel: VacancyModel(
-        description: 'description8',
-        licensePlate: 'plate8',
-        entryTime: DateTime(2024, 04, 16, 08, 15),
-        departureTime: DateTime(2024, 04, 16, 18, 30),
-      ),
-    ),
-    ParkingSpaceModel(
-      position: 0,
-      vacancyModel: VacancyModel(
-        description: 'description8',
-        licensePlate: 'plate8',
-        entryTime: DateTime(2024, 04, 16, 08, 15),
-      ),
-    ),
-  ];
 
   @override
   void onClose() {
     tabController?.dispose();
     descriptionVehicle.dispose();
     vehicleLicensePlate.dispose();
-    dateInitial.dispose();
-    dateEnd.dispose();
+    dateFilterInitial.dispose();
+    dateFilterEnd.dispose();
     super.onClose();
   }
 }

@@ -4,7 +4,7 @@ import 'package:john_parking/shared/animations/animate_do_fades.dart';
 import 'package:john_parking/shared/extensions/date_extension.dart';
 import 'package:john_parking/shared/extensions/string_extension.dart';
 
-import '../../../data/models/parking_space_model.dart';
+import '../../../data/models/vacancy_model.dart';
 import '../../../shared/animations/animate_do_zooms.dart';
 import '../../../shared/widgets/custom_sliver_persistent_header.dart';
 import '../parking_controller.dart';
@@ -13,6 +13,8 @@ class HistoricParkingWidget extends StatelessWidget {
   final ParkingController controller;
 
   const HistoricParkingWidget({super.key, required this.controller});
+
+  static const TextStyle _black12Bold = TextStyle(fontSize: 12, fontWeight: FontWeight.bold);
 
   @override
   Widget build(BuildContext context) {
@@ -38,25 +40,27 @@ class HistoricParkingWidget extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Data Inicial', style: TextStyle(fontSize: 12)),
+                            const Text('Data Inicial', style: _black12Bold),
                             TextFormField(
                               readOnly: true,
                               textAlign: TextAlign.center,
-                              controller: controller.dateInitial,
+                              controller: controller.dateFilterInitial,
                               onTap: () async {
                                 final result = await Get.dialog(
                                   DatePickerDialog(
                                     firstDate: DateTime(1900),
                                     lastDate: DateTime.now(),
-                                    initialDate: controller.dateInitial.text.toDate,
+                                    initialDate: controller.dateFilterInitial.text.toDate,
                                     switchToInputEntryModeIcon:
                                         const Icon(Icons.calendar_month, color: Colors.transparent),
                                   ),
                                 );
 
                                 if (result is DateTime) {
-                                  if (controller.dateEnd.text.toDate.isBefore(result)) controller.dateEnd.clear();
-                                  controller.dateInitial.text = result.formatddMMyyyy;
+                                  if (controller.dateFilterEnd.text.toDate.isBefore(result)) {
+                                    controller.dateFilterEnd.clear();
+                                  }
+                                  controller.dateFilterInitial.text = result.formatddMMyyyy;
                                 }
                               },
                             ),
@@ -68,28 +72,28 @@ class HistoricParkingWidget extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Data Final', style: TextStyle(fontSize: 12)),
+                            const Text('Data Final', style: _black12Bold),
                             TextFormField(
                               readOnly: true,
                               textAlign: TextAlign.center,
-                              controller: controller.dateEnd,
-                              enabled: controller.dateInitial.text.isNotEmpty,
+                              controller: controller.dateFilterEnd,
+                              enabled: controller.dateFilterInitial.text.isNotEmpty,
                               onTap: () async {
                                 final result = await Get.dialog(
                                   DatePickerDialog(
-                                    firstDate: controller.dateInitial.text.toDate,
+                                    firstDate: controller.dateFilterInitial.text.toDate,
                                     lastDate: DateTime.now(),
-                                    initialDate: controller.dateEnd.text.toDate,
+                                    initialDate: controller.dateFilterEnd.text.toDate,
                                     switchToInputEntryModeIcon:
                                         const Icon(Icons.calendar_month, color: Colors.transparent),
                                   ),
                                 );
 
                                 if (result is DateTime) {
-                                  if (controller.dateInitial.text.isEmpty) {
-                                    controller.dateInitial.text = result.formatddMMyyyy;
+                                  if (controller.dateFilterInitial.text.isEmpty) {
+                                    controller.dateFilterInitial.text = result.formatddMMyyyy;
                                   }
-                                  controller.dateEnd.text = result.formatddMMyyyy;
+                                  controller.dateFilterEnd.text = result.formatddMMyyyy;
                                 }
                               },
                             ),
@@ -100,7 +104,7 @@ class HistoricParkingWidget extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(top: 16),
                         child: ListenableBuilder(
-                            listenable: Listenable.merge([controller.dateInitial, controller.dateEnd]),
+                            listenable: Listenable.merge([controller.dateFilterInitial, controller.dateFilterEnd]),
                             builder: (context, child) {
                               return IconButton.filled(
                                   onPressed: !controller.datesValid ? null : controller.filterHistoric,
@@ -115,7 +119,7 @@ class HistoricParkingWidget extends StatelessWidget {
           ),
         ),
         Obx(() {
-          if (controller.status.isLoading) {
+          if (controller.statusHistoric.isLoading) {
             return const SliverFillRemaining(
                 child: Align(alignment: Alignment.topCenter, child: LinearProgressIndicator()));
           }
@@ -123,9 +127,9 @@ class HistoricParkingWidget extends StatelessWidget {
             visible: controller.listVacancy.isNotEmpty,
             replacementSliver: SliverToBoxAdapter(
               child: Offstage(
-                offstage: controller.dateInitial.text.trim().isEmpty ||
-                    controller.dateEnd.text.trim().isEmpty ||
-                    controller.status.isInitial,
+                offstage: controller.dateFilterInitial.text.trim().isEmpty ||
+                    controller.dateFilterEnd.text.trim().isEmpty ||
+                    controller.statusHistoric.isInitial,
                 child: ZoomIn(
                   duration: const Duration(milliseconds: 350),
                   child: const Padding(
@@ -150,8 +154,8 @@ class HistoricParkingWidget extends StatelessWidget {
               sliver: SliverList.builder(
                   itemCount: controller.listVacancy.length,
                   itemBuilder: (context, index) {
-                    final ParkingSpaceModel item = controller.listVacancy[index];
-                    final String exitText = item.vacancyModel!.departureTime?.formatddMMyyyyHHmm ?? '';
+                    final VacancyModel item = controller.listVacancy[index];
+                    final String exitText = item.departureTime?.formatddMMyyyyHHmm ?? '';
                     return FadeInUp(
                       duration: const Duration(milliseconds: 300),
                       child: Card(
@@ -162,59 +166,62 @@ class HistoricParkingWidget extends StatelessWidget {
                             children: [
                               Row(
                                 children: [
-                                  const Text(
-                                    'Data Entrada',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                  ),
+                                  const Text('Data Entrada', style: _black12Bold),
                                   Expanded(
                                       child: Container(
                                           margin: const EdgeInsets.fromLTRB(8, 6, 8, 0),
                                           height: 1,
                                           color: Colors.grey.shade300)),
                                   Text(
-                                    item.vacancyModel!.entryTime.formatddMMyyyyHHmm,
+                                    item.entryTime.formatddMMyyyyHHmm,
                                     style:
                                         const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.green),
+                                    textAlign: TextAlign.end,
                                   ),
                                 ],
                               ),
                               Row(
                                 children: [
-                                  const Text(
-                                    'Data Saída',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                  ),
+                                  const Text('Data Saída', style: _black12Bold),
                                   Expanded(
-                                      child: Container(
-                                          margin: const EdgeInsets.fromLTRB(8, 6, 8, 0),
-                                          height: 1,
-                                          color: Colors.grey.shade300)),
+                                    child: Container(
+                                        margin: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+                                        height: 1,
+                                        color: Colors.grey.shade300),
+                                  ),
                                   Text(
                                     exitText.isEmpty ? DateTime.now().formatddMMyyyyHHmm : exitText,
                                     style: TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 12,
-                                        color: exitText.isEmpty ? Colors.transparent : Colors.red),
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 12,
+                                      color: exitText.isEmpty ? Colors.transparent : Colors.red,
+                                    ),
+                                    textAlign: TextAlign.end,
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
+                              // const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  const Text(
-                                    'Veículo:  ',
-                                    style: TextStyle(fontSize: 12, height: .85, fontWeight: FontWeight.bold),
-                                  ),
-                                  Expanded(child: Text(item.vacancyModel!.description, maxLines: 1)),
+                                  const Text('Veículo:  ', style: _black12Bold),
+                                  Expanded(child: Text(item.description, maxLines: 1)),
                                 ],
                               ),
                               Row(
                                 children: [
-                                  const Text(
-                                    'Placa:  ',
-                                    style: TextStyle(fontSize: 12, height: .85, fontWeight: FontWeight.bold),
+                                  const Text('Placa:  ', style: _black12Bold),
+                                  Text(
+                                    item.licensePlate,
+                                    maxLines: 1,
+                                    style: const TextStyle(height: .85),
                                   ),
-                                  Expanded(child: Text(item.vacancyModel!.licensePlate, maxLines: 1)),
+                                  const Spacer(),
+                                  const Text('Vaga:  ', style: _black12Bold),
+                                  Text(
+                                    item.parkingSpaceId.toString(),
+                                    maxLines: 1,
+                                    style: const TextStyle(height: .85),
+                                  ),
                                 ],
                               ),
                             ],

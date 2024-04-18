@@ -17,7 +17,6 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'John Parking',
       debugShowCheckedModeBanner: false,
-      initialBinding: MainBindings(),
       theme: AppTheme.defaultTheme,
       getPages: RoutesApp.routes,
       initialRoute: RoutesApp.parking,
@@ -33,9 +32,4 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [Locale('pt', 'BR')],
     );
   }
-}
-
-class MainBindings implements Bindings {
-  @override
-  void dependencies() {}
 }
