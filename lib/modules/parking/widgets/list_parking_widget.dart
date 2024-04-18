@@ -199,7 +199,7 @@ class ListParkingWidget extends StatelessWidget {
                                                       await controller.finalizeParkingReservation(parkingSpace);
                                                   if (response.isSuccess) {
                                                     CustomSnackbar.showMessageSuccess(
-                                                        title: 'FINALIZADO', message: response.data);
+                                                        title: 'FINALIZADO', message: response.data!);
                                                   } else {
                                                     CustomSnackbar.showMessageError(
                                                       message: response.error ??
@@ -230,7 +230,7 @@ class ListParkingWidget extends StatelessWidget {
                                                                   .createParkingReservation(parkingSpace);
                                                               if (response.isSuccess) {
                                                                 CustomSnackbar.showMessageSuccess(
-                                                                    title: 'RESERVADO', message: response.data);
+                                                                    title: 'RESERVADO', message: response.data!);
                                                               } else {
                                                                 CustomSnackbar.showMessageError(
                                                                   message: response.error ??

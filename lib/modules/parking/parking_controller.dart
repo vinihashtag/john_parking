@@ -84,7 +84,7 @@ class ParkingController extends GetxController with GetSingleTickerProviderState
   }
 
   /// Creates a reservation
-  Future<ResponseModel> createParkingReservation(ParkingSpaceModel parking) async {
+  Future<ResponseModel<String, String>> createParkingReservation(ParkingSpaceModel parking) async {
     final int index = listParkingSpace.indexWhere((element) => element.id == parking.id);
 
     final ParkingSpaceModel updateParkingSpace = parking.copyWith(
@@ -107,7 +107,7 @@ class ParkingController extends GetxController with GetSingleTickerProviderState
   }
 
   /// Finalizes a reservation
-  Future<ResponseModel> finalizeParkingReservation(ParkingSpaceModel parking) async {
+  Future<ResponseModel<String, String>> finalizeParkingReservation(ParkingSpaceModel parking) async {
     final int index = listParkingSpace.indexWhere((element) => element.id == parking.id);
 
     final response = await _parkingRepository.removeParkingSpace(parking);
@@ -115,7 +115,7 @@ class ParkingController extends GetxController with GetSingleTickerProviderState
     if (response.isError) {
       return ResponseModel(error: 'Erro ao finalizar a reserva, tente novamente.');
     } else {
-      listParkingSpace[index] = ParkingSpaceModel(id: parking.id);
+      listParkingSpace[index] = ParkingSpaceModel(id: parking.id, vacancyModel: null);
       return ResponseModel(data: 'Reserva finalizada com sucesso!');
     }
   }

@@ -65,7 +65,7 @@ class ParkingRepository implements IParkingRepository {
     try {
       final db = await _dbProvider.database;
 
-      final id = await db.transaction((txn) async {
+      final int id = await db.transaction<int>((txn) async {
         final insertId = await txn.insert(ConstantsApp.tableVacancy, parking.vacancyModel!.toMap());
         await txn.update(ConstantsApp.tableParkingSpace, {ConstantsApp.columnVacancyIdVacancy: insertId},
             where: 'id = ?', whereArgs: [parking.id]);
@@ -93,7 +93,7 @@ class ParkingRepository implements IParkingRepository {
     try {
       final db = await _dbProvider.database;
 
-      await db.transaction((txn) async {
+      await db.transaction<void>((txn) async {
         await txn.update(
             ConstantsApp.tableVacancy, parking.vacancyModel!.copyWith(departureTime: DateTime.now()).toMap(),
             where: 'id = ?', whereArgs: [parking.vacancyModel!.id!]);

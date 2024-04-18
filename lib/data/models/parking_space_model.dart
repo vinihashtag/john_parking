@@ -34,4 +34,17 @@ class ParkingSpaceModel {
 
   @override
   String toString() => 'ParkingSpaceModel(id: $id, vacancyModel: $vacancyModel)';
+
+  Map<String, dynamic> toMap() {
+    final result = <String, dynamic>{};
+
+    result.addAll({'id': id});
+    if (vacancyModel != null) {
+      result.addAll({'vacancyModel': vacancyModel!.toMap()});
+    }
+
+    return result;
+  }
+
+  String toJson() => json.encode(toMap());
 }
